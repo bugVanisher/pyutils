@@ -6,24 +6,18 @@ import os
 import sys
 
 
-class MyLogger():
+class MyLogger(object):
     '''
         my logger
-        默认打印general.log和console日志
     '''
     FORMAT = "%(asctime)s ~ %(levelname)s ~ %(message)s"
     DATEFMT = "[%Y-%m-%d %H:%M:%S]"
     # 使用默认日志
-    is_general_log = True
+    is_common_log = True
     # 是否输出到控制台
     is_console = True
-    _has_set_log = False
     formatter = logging.Formatter(FORMAT, DATEFMT)
     level = logging.DEBUG
-
-    @classmethod
-    def disable_console(cls):
-        cls.is_console = False
 
     @classmethod
     def setup_logger(cls, logname, logfile, level=logging.INFO, is_console=True, console_level=logging.DEBUG):
@@ -69,15 +63,18 @@ class MyLogger():
 
     @classmethod
     def _fire_log(cls):
-        if cls.is_general_log and not cls._has_set_log:
-            logging.basicConfig(filename="general.log", level=cls.level, format=cls.FORMAT, datefmt=cls.DATEFMT)
-            exception_handler = logging.FileHandler("error.log", mode='a')
+        if cls.is_common_log and len(logging.root.handlers) == 0:
+            logs_path = os.path.join(cls._get_log_dir(), "logs")
+            if not os.path.exists(logs_path):
+                os.makedirs(logs_path)
+            logging.basicConfig(filename=os.path.join(logs_path, "general.log"), level=cls.level,
+                                format=cls.FORMAT, datefmt=cls.DATEFMT)
+            exception_handler = logging.FileHandler(os.path.join(logs_path, "error.log"), mode='a')
             exception_handler.setFormatter(cls.formatter)
             exception_handler.setLevel(logging.ERROR)
-            logging.getLogger().addHandler(exception_handler)
+            logging.root.addHandler(exception_handler)
             if cls.is_console:
                 cls.set_console_handler()
-            cls._has_set_log = True
 
     @classmethod
     def set_console_handler(cls, logname=None, console_level=logging.DEBUG):
@@ -92,6 +89,10 @@ class MyLogger():
         streamhandler.setFormatter(cls.formatter)
         streamhandler.setLevel(console_level)
         l.addHandler(streamhandler)
+
+    @classmethod
+    def _get_log_dir(cls):
+        return os.environ.get("app_home", os.path.dirname(__file__))
 
     @classmethod
     def info(cls, msg, *args, **kwargs):
@@ -137,3 +138,6 @@ class MyLogger():
 
 # Install exception handler
 sys.excepthook = MyLogger.exception_handler
+
+if __name__ == '__main__':
+    MyLogger.error("hello")

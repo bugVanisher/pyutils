@@ -31,18 +31,16 @@ except:
     pass
 
 
-class MemcacheServer():
+class MemcacheServer(object):
     def __init__(self, host, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(host, port)
 
     def connect(self, host=None, port=None):
-        self.host = host
-        self.port = port
         try:
             self.server.connect((host, port))
         except:
-            print "connect error ......"
+            print("connect error ......")
 
     def send(self, msg):
         self.server.send(msg)
@@ -58,10 +56,10 @@ class MemcacheServer():
         return msg
 
     def get_dump_msg(self):
-        '''
+        """
             仅限特定命令使用
         :return: str
-        '''
+        """
         buf_len = 1024
         msg = ""
         while True:
@@ -77,9 +75,9 @@ class MemcacheServer():
 
 
 class MCOperation(MemcacheServer):
-    '''
+    """
         缓存操作
-    '''
+    """
     outputList = []
 
     def __init__(self, host, port):
@@ -108,7 +106,7 @@ class MCOperation(MemcacheServer):
                 for line in cachedump.splitlines():
                     self._info_filter(line)
 
-        except Exception, e:
+        except Exception as e:
             logging.exception("init all keys error %s", e)
 
     def _format_data(self, record):
@@ -163,7 +161,7 @@ class MCOperation(MemcacheServer):
                     if self.allKeysDict[key]["size"] == v["size"]:
                         samesizekeys.append(key)
                 size2keysdict[v["size"]] = samesizekeys
-            except Exception, e:
+            except Exception as e:
                 logging.error("key size error %s:%s", v, e)
         sizes = size2keysdict.keys()
         for i in range(len(sizes)):
@@ -198,33 +196,33 @@ if __name__ == '__main__':
         arguments = docopt(__doc__, sys.argv[1:])
         mcClient = MCOperation(arguments["<host>"], int(arguments["<port>"]))
         if arguments["-g"]:
-            print "\n".join(mcClient.get_key(arguments["-g"]))
+            print("\n".join(mcClient.get_key(arguments["-g"])))
         elif arguments["-d"]:
-            print "\n".join(mcClient.del_key(arguments["-d"]))
+            print("\n".join(mcClient.del_key(arguments["-d"])))
         elif arguments["-l"]:
-            print "\n".join(mcClient.get_all_keys())
+            print("\n".join(mcClient.get_all_keys()))
         elif arguments["-f"]:
-            print "\n".join(mcClient.flush_all())
+            print("\n".join(mcClient.flush_all()))
         elif arguments["-t"]:
-            print "\n".join(mcClient.get_largest_keys(int(arguments["-t"])))
+            print("\n".join(mcClient.get_largest_keys(int(arguments["-t"]))))
         sys.exit()
     except NameError:
-        print "module docopt is not installed~ ,you'd better install it first~"
-    except Exception, e:
+        print("module docopt is not installed~ ,you'd better install it first~")
+    except Exception as e:
         logging.exception(e)
 
     try:
         arguments = arg_parse()
         mcclient = MCOperation(arguments.get("host"), arguments.get("port"))
         if arguments.get("list"):
-            print "\n".join(mcclient.get_all_keys())
+            print("\n".join(mcclient.get_all_keys()))
         if arguments.get("g"):
-            print "\n".join(mcclient.get_key(arguments.get("g")))
+            print("\n".join(mcclient.get_key(arguments.get("g"))))
         if arguments.get("d"):
-            print "\n".join(mcclient.del_key(arguments.get("d")))
+            print("\n".join(mcclient.del_key(arguments.get("d"))))
         if arguments.get("f"):
-            print "\n".join(mcclient.flush_all())
+            print("\n".join(mcclient.flush_all()))
         if arguments.get("t"):
-            print "\n".join(mcclient.get_largest_keys(arguments.get("t")))
-    except Exception, e:
+            print("\n".join(mcclient.get_largest_keys(arguments.get("t"))))
+    except Exception as e:
         logging.exception(e)
