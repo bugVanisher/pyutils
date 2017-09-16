@@ -129,14 +129,13 @@ class MysqlConnection(object):
         except Exception as e:
             logging.exception(e)
 
-    def query(self, sql):
+    def query(self, sql_tpl, args=None):
         """
-
-        :param sql:
+            参数化,更安全
+        :param sql_tpl:
         :return:
         """
-        # print query
-        self.sword.execute(sql)
+        self.sword.execute(sql_tpl, args)
         self.__conn.commit()
         results = self.sword.fetchall()
         if self.sword.description:
@@ -164,6 +163,9 @@ class MysqlConnection(object):
 
 
 class ConnectionThread(threading.Thread):
+    """
+        创建连接的线程
+    """
     def __init__(self, dbconfig, num_queue, conn_queue):
         '''
             

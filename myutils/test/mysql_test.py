@@ -11,7 +11,6 @@ import random
 from mysqlpool import *
 
 
-rlock = threading.RLock()
 HOST = ''
 USER = ''
 DBPASSWORD = ''

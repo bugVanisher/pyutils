@@ -177,6 +177,18 @@ class MCOperation(MemcacheServer):
                 self.outputList.append(self._format_data(self.allKeysDict[key]))
         return self.outputList
 
+    def set(self, key, value, expire=0):
+        """
+
+        :typ key: str
+        :type value: str | bytearray
+        :type expire: int
+        :return:
+        """
+        _set = "set {key} 0 {expire} {size}\r\n{value}\r\n".format(key=key, expire=expire, size=len(value), value=value)
+        self.send(_set)
+        return self.get_msg()
+
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="memcache command line util.")
@@ -207,7 +219,7 @@ if __name__ == '__main__':
             print("\n".join(mcClient.get_largest_keys(int(arguments["-t"]))))
         sys.exit()
     except NameError:
-        print("module docopt is not installed~ ,you'd better install it first~")
+        logging.exception("module docopt is not installed~ ,you'd better install it first~")
     except Exception as e:
         logging.exception(e)
 

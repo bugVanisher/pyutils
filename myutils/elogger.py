@@ -138,6 +138,3 @@ class MyLogger(object):
 
 # Install exception handler
 sys.excepthook = MyLogger.exception_handler
-
-if __name__ == '__main__':
-    MyLogger.error("hello")
