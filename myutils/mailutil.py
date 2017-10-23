@@ -27,14 +27,14 @@ class MailUtil(threading.Thread):
                         }
                  (attachment)
         :param subject: 邮件标题
-        :param file_name_or_content: 文件名或内容
+        :param file_name_or_content: 文件名或内容,文件名超过50字符
         :param basic_info: 邮件相关配置
         :param attachment: 附件
         """
         threading.Thread.__init__(self)
         self._set_basic_info(basic_info)
         self.subject = subject
-        self.fileName = file_name_or_content
+        self.obj = file_name_or_content
         self.attachment = attachment
 
     def _set_basic_info(self, basic_info):
@@ -60,20 +60,20 @@ class MailUtil(threading.Thread):
             MyLogger.error("basic_info should be a dict")
             raise BadEmailSettings("basic_info not a dict")
 
-    def _send_mail(self, subject, file_name, attachment):
+    def _send_mail(self, subject, obj, attachment):
         subject = subject.decode("utf-8")
-        if os.path.isfile(file_name):
-            fd = open(file_name)
+        if len(obj) <= 50 and os.path.isfile(obj):
+            fd = open(obj)
             content = fd.read()
             content = "<br/>".join(content.split("\n"))
             self._do_send_mail(self.BASICS["TOLIST"], subject, content, attachment)
             fd.close()
         else:
-            self._do_send_mail(self.BASICS["TOLIST"], subject, file_name, attachment)
+            self._do_send_mail(self.BASICS["TOLIST"], subject, obj, attachment)
             MyLogger.info("to send mail file not exist,now just send this string")
 
     def run(self):
-        self._send_mail(self.subject, self.fileName, self.attachment)
+        self._send_mail(self.subject, self.obj, self.attachment)
 
     def _do_send_mail(self, to, subject, content, attachment):
 
