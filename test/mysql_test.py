@@ -8,7 +8,7 @@
 import threading
 import time
 import random
-from mysqlpool import *
+from myutils.mysqlpool import *
 
 
 HOST = ''
