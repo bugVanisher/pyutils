@@ -34,7 +34,11 @@ class MyLogger(object):
         if len(l.handlers):
             return l
         l.setLevel(level)
-        base_path = os.path.dirname(logfile)
+        if os.path.abspath(logfile):
+            base_path = os.path.dirname(logfile)
+        else:
+            base_path = os.path.join(cls._get_base_dir(), "logs")
+            logfile = os.path.join(base_path, logfile)
         if base_path and not os.path.exists(base_path):
             try:
                 os.makedirs(base_path)
@@ -64,7 +68,7 @@ class MyLogger(object):
     @classmethod
     def _fire_log(cls):
         if cls.is_common_log and len(logging.root.handlers) == 0:
-            logs_path = os.path.join(cls._get_log_dir(), "logs")
+            logs_path = os.path.join(cls._get_base_dir(), "logs")
             if not os.path.exists(logs_path):
                 os.makedirs(logs_path)
             logging.basicConfig(filename=os.path.join(logs_path, "general.log"), level=cls.level,
@@ -91,8 +95,9 @@ class MyLogger(object):
         l.addHandler(streamhandler)
 
     @classmethod
-    def _get_log_dir(cls):
-        return os.environ.get("app_home", os.path.dirname(__file__))
+    def _get_base_dir(cls):
+        path = os.environ.get("base_dir", os.path.dirname(os.getcwd()))
+        return path if path else os.getcwd()
 
     @classmethod
     def info(cls, msg, *args, **kwargs):
