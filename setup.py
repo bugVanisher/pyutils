@@ -18,7 +18,7 @@ setup(
     author_email="gannicus_yu@163.com",
     description="easy and convenient tools written in Python",
     long_description=__doc__,
-    install_requires=["MySQL-python==1.2.5", "docopt==0.6.2"],
+    install_requires=["MySQL-python", "docopt"],
     url="https://github.com/gannicus-yu/pyutils",
     packages=["myutils"],
     platforms=['all'],
