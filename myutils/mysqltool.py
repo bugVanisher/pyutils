@@ -105,13 +105,14 @@ class MysqlConnection(object):
         :type mydbconfig: DBConfig
         """
         self.dbconfig = mydbconfig
+        self.sword = None
         try:
             self.__conn = MySQLdb.connect(mydbconfig.host, mydbconfig.user, mydbconfig.pwd,
                                           mydbconfig.db, mydbconfig.port)
             self.sword = self.__conn.cursor()
             self.sword.execute("set names utf8;")
         except Exception as e:
-            logging.warn("connect mysql server error\n%s", e)
+            mysql_logger.warn("connect mysql server error\n%s", e)
 
     def close_conn(self):
         if self.__conn:
@@ -126,7 +127,7 @@ class MysqlConnection(object):
         try:
             self.__conn.select_db(db)
         except Exception as e:
-            logging.exception(e)
+            mysql_logger.exception(e)
 
     def query(self, sql_tpl, args=None):
         """
@@ -134,6 +135,9 @@ class MysqlConnection(object):
         :param sql_tpl:
         :return:
         """
+        if not self.sword:
+            mysql_logger.error("connection is not ready~")
+            return
         self.sword.execute(sql_tpl, args)
         self.__conn.commit()
         results = self.sword.fetchall()
@@ -149,13 +153,16 @@ class MysqlConnection(object):
     def insert_or_update_many(self, query, args):
         """
             批量操作
-        :param query:
-        :param args:
+        :type query:
+        :type args: list|tuple e.g ((1),)
         :return:
         """
+        if not self.sword:
+            mysql_logger.error("connection is not ready~")
+            return
         try:
             rows = self.sword.executemany(query, args)
             self.__conn.commit()
             return rows
         except Exception as e:
-            logging.warn("insert or update error\n%s", e)
+            mysql_logger.exception("insert or update error\n%s", e)

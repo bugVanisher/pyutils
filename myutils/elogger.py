@@ -6,7 +6,7 @@ import os
 import sys
 
 
-class MyLogger(object):
+class MyLogger(logging.Logger):
     '''
         my logger
     '''
@@ -43,13 +43,13 @@ class MyLogger(object):
             try:
                 os.makedirs(base_path)
             except OSError, e:
-                MyLogger.exception(e)
+                logging.exception(e)
         filehandler = logging.FileHandler(logfile, mode='a')
         filehandler.setFormatter(cls.formatter)
         l.addHandler(filehandler)
         #   控制台输出
         if is_console and cls.is_console:
-            cls.set_console_handler(logname, console_level)
+            cls._set_console_handler(logname, console_level)
         exception_handler = logging.FileHandler(os.path.join(base_path, "error.log"), mode='a')
         exception_handler.setFormatter(cls.formatter)
         exception_handler.setLevel(logging.ERROR)
@@ -66,7 +66,11 @@ class MyLogger(object):
         return logging.getLogger(logname)
 
     @classmethod
-    def _fire_log(cls):
+    def fire_log(cls):
+        """
+
+        :return:
+        """
         if cls.is_common_log and len(logging.root.handlers) == 0:
             logs_path = os.path.join(cls._get_base_dir(), "logs")
             if not os.path.exists(logs_path):
@@ -78,10 +82,10 @@ class MyLogger(object):
             exception_handler.setLevel(logging.ERROR)
             logging.root.addHandler(exception_handler)
             if cls.is_console:
-                cls.set_console_handler()
+                cls._set_console_handler()
 
     @classmethod
-    def set_console_handler(cls, logname=None, console_level=logging.DEBUG):
+    def _set_console_handler(cls, logname=None, console_level=logging.DEBUG):
         '''
             是否输出到控制台
         :param logname:
@@ -100,36 +104,6 @@ class MyLogger(object):
         return path if path else os.getcwd()
 
     @classmethod
-    def info(cls, msg, *args, **kwargs):
-        cls._fire_log()
-        logging.info(msg, *args, **kwargs)
-
-    @classmethod
-    def debug(cls, msg, *args, **kwargs):
-        cls._fire_log()
-        logging.debug(msg, *args, **kwargs)
-
-    @classmethod
-    def error(cls, msg, *args, **kwargs):
-        cls._fire_log()
-        logging.error(msg, *args, **kwargs)
-
-    @classmethod
-    def critical(cls, msg, *args, **kwargs):
-        cls._fire_log()
-        logging.critical(msg, *args, **kwargs)
-
-    @classmethod
-    def warning(cls, msg, *args, **kwargs):
-        cls._fire_log()
-        logging.warning(msg, *args, **kwargs)
-
-    @classmethod
-    def exception(cls, e, *args, **kwargs):
-        cls._fire_log()
-        logging.exception(e, *args, **kwargs)
-
-    @classmethod
     def exception_handler(cls, exc_type, exc_value, exc_traceback):
         '''
            自定义的sys.excepthook, 未捕获的异常按root logger的规则输出
@@ -138,8 +112,9 @@ class MyLogger(object):
         :param exc_traceback:
         :return:
         '''
-        cls.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
+MyLogger.fire_log()
 
 # Install exception handler
 sys.excepthook = MyLogger.exception_handler

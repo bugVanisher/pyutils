@@ -22,6 +22,7 @@ import argparse
 import logging
 import re
 import socket
+import struct
 import sys
 import time
 
@@ -51,7 +52,7 @@ class MemcacheServer(object):
         while True:
             buf = self.server.recv(buf_len)
             msg += buf
-            if len(buf) != buf_len:
+            if len(buf) < buf_len:
                 break
         return msg
 
@@ -68,6 +69,30 @@ class MemcacheServer(object):
             if len(buf) != buf_len and msg.endswith("END\r\n"):  # 结束标志
                 break
         return msg
+
+    def send_msg(self, msg):
+        # Prefix each message with a 4-byte length (network byte order)
+        msg = struct.pack('>I', len(msg)) + msg
+        self.server.sendall(msg)
+
+    def recv_msg(self):
+        # Read message length and unpack it into an integer
+        raw_msglen = self.recvall(4)
+        if not raw_msglen:
+            return None
+        msglen = struct.unpack('>I', raw_msglen)[0]
+        # Read the message data
+        return self.recvall(msglen)
+
+    def recvall(self, n):
+        # Helper function to recv n bytes or return None if EOF is hit
+        data = b''
+        while len(data) < n:
+            packet = self.server.recv(n - len(data))
+            if not packet:
+                return None
+            data += packet
+        return data
 
     def close(self):
         if self.server:
@@ -89,7 +114,7 @@ class MCOperation(MemcacheServer):
     def _init_all_keys_val(self):
         try:
             self.send("stats items\r\n")
-            stats_items = self.get_dump_msg()
+            stats_items = self.get_msg()
             # print stats_items
             items = {}
             for line in stats_items.splitlines():
@@ -101,7 +126,7 @@ class MCOperation(MemcacheServer):
                     self.totalItems += int(j)
             for buckets in sorted(items.keys()):
                 self.send("stats cachedump %d %d\r\n" % (buckets, 0))
-                cachedump = self.get_dump_msg()
+                cachedump = self.get_msg()
 
                 for line in cachedump.splitlines():
                     self._info_filter(line)
