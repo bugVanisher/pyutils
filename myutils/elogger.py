@@ -12,8 +12,6 @@ class MyLogger(logging.Logger):
     '''
     FORMAT = "%(asctime)s ~ %(levelname)s ~ %(message)s"
     DATEFMT = "[%Y-%m-%d %H:%M:%S]"
-    # 使用默认日志
-    is_common_log = True
     # 是否输出到控制台
     is_console = True
     formatter = logging.Formatter(FORMAT, DATEFMT)
@@ -63,6 +61,8 @@ class MyLogger(logging.Logger):
         :param logname:
         :rtype: logging.Logger
         '''
+        if not logname:
+            cls.fire_log()
         return logging.getLogger(logname)
 
     @classmethod
@@ -71,7 +71,7 @@ class MyLogger(logging.Logger):
 
         :return:
         """
-        if cls.is_common_log and len(logging.root.handlers) == 0:
+        if len(logging.root.handlers) == 0:
             logs_path = os.path.join(cls._get_base_dir(), "logs")
             if not os.path.exists(logs_path):
                 os.makedirs(logs_path)
@@ -100,8 +100,12 @@ class MyLogger(logging.Logger):
 
     @classmethod
     def _get_base_dir(cls):
+        """
+            you can set base log dir, otherwise use cwd
+        :return:
+        """
         path = os.environ.get("base_dir", os.path.dirname(os.getcwd()))
-        return path if path else os.getcwd()
+        return path
 
     @classmethod
     def exception_handler(cls, exc_type, exc_value, exc_traceback):
@@ -113,8 +117,6 @@ class MyLogger(logging.Logger):
         :return:
         '''
         logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-MyLogger.fire_log()
 
 # Install exception handler
 sys.excepthook = MyLogger.exception_handler
