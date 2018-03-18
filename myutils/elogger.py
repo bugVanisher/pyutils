@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # coding:utf-8
+"""
+Usage:
+    >> os.environ["base_dir"] = os.path.dirname(os.path.realpath(__file__)) # 获取logger前指定日志目录
+    >> logger1 = MyLogger.get_logger()
 
+    >> logger2 = MyLogger.setup_logger(__file__, "run.log", is_console=False) # 不输出到控制台
+
+"""
 import logging
 import os
 import sys
@@ -32,7 +39,7 @@ class MyLogger(logging.Logger):
         if len(l.handlers):
             return l
         l.setLevel(level)
-        if os.path.abspath(logfile):
+        if os.path.isabs(logfile):
             base_path = os.path.dirname(logfile)
         else:
             base_path = os.path.join(cls._get_base_dir(), "logs")
