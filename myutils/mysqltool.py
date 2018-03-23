@@ -7,15 +7,12 @@
 """
 
 import hashlib
-import logging
-
 import MySQLdb
-
-from elogger import MyLogger
+import logging
 
 __all__ = ["MysqlConnection", "DBConfig"]
 
-mysql_logger = MyLogger.setup_logger("mysqllog", "mysql.log")
+mysql_logger = logging.getLogger("mysqllog")
 
 
 class Record(object):

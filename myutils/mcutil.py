@@ -31,6 +31,8 @@ try:
 except:
     pass
 
+logger = logging.getLogger("mclog")
+
 
 class MemcacheServer(object):
     def __init__(self, host, port):
@@ -41,7 +43,7 @@ class MemcacheServer(object):
         try:
             self.server.connect((host, port))
         except:
-            print("connect error ......")
+            logger.exception("connect error ......")
 
     def send(self, msg):
         self.server.send(msg)

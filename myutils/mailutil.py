@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import email.utils
+import logging
 import os
 import smtplib
 import threading
@@ -8,8 +9,7 @@ from email.mime.text import MIMEText
 
 from email.MIMEMultipart import MIMEMultipart
 
-from elogger import MyLogger
-
+logger = logging.getLogger("maillog")
 
 class MailUtil(threading.Thread):
     mailServerPort = 25
@@ -48,16 +48,16 @@ class MailUtil(threading.Thread):
             if "PORT" not in basic_info.keys():
                 basic_info["PORT"] = self.mailServerPort
             if len(basic_info.keys()) != len(basic):
-                MyLogger.error("params nums not correct~")
+                logger.error("params nums not correct~")
                 raise BadEmailSettings("basic_info param error")
             for basic in basic:
                 if basic in basic_info.keys():
                     self.BASICS[basic] = basic_info[basic]
                 else:
-                    MyLogger.error("mail settings has no %s", basic)
+                    logger.error("mail settings has no %s", basic)
                     raise BadEmailSettings()
         else:
-            MyLogger.error("basic_info should be a dict")
+            logger.error("basic_info should be a dict")
             raise BadEmailSettings("basic_info not a dict")
 
     def _send_mail(self, subject, obj, attachment):
