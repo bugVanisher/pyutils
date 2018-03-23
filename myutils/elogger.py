@@ -11,6 +11,7 @@ Usage:
 import logging
 import os
 import sys
+from logging.handlers import TimedRotatingFileHandler
 
 
 class MyLogger(logging.Logger):
@@ -49,7 +50,8 @@ class MyLogger(logging.Logger):
                 os.makedirs(base_path)
             except OSError, e:
                 logging.exception(e)
-        filehandler = logging.FileHandler(logfile, mode='a')
+        # filehandler = logging.FileHandler(logfile, mode='a')
+        filehandler = TimedRotatingFileHandler(logfile, when="MIDNIGHT")
         filehandler.setFormatter(cls.formatter)
         l.addHandler(filehandler)
         #   控制台输出
@@ -69,6 +71,7 @@ class MyLogger(logging.Logger):
         :rtype: logging.Logger
         '''
         if not logname:
+            # set up default log handler
             cls.fire_log()
         return logging.getLogger(logname)
 
@@ -127,3 +130,7 @@ class MyLogger(logging.Logger):
 
 # Install exception handler
 sys.excepthook = MyLogger.exception_handler
+
+
+if __name__ == '__main__':
+    print(logging.getLogger("hello"))
