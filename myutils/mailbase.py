@@ -11,10 +11,11 @@ from email.MIMEMultipart import MIMEMultipart
 
 logger = logging.getLogger("maillog")
 
-class MailUtil(threading.Thread):
+
+class MailBase(threading.Thread):
     mailServerPort = 25
 
-    def __init__(self, subject, file_name_or_content, basic_info, attachment=""):
+    def __init__(self, subject, content, basic_info, attachment=""):
         """
                 多线程邮件处理类
                 @Params  target: file or string
@@ -27,14 +28,14 @@ class MailUtil(threading.Thread):
                         }
                  (attachment)
         :param subject: 邮件标题
-        :param file_name_or_content: 文件名或内容,文件名超过50字符
+        :param content: 文件名或内容,文件名超过50字符
         :param basic_info: 邮件相关配置
         :param attachment: 附件
         """
         threading.Thread.__init__(self)
         self._set_basic_info(basic_info)
         self.subject = subject
-        self.obj = file_name_or_content
+        self.content = content
         self.attachment = attachment
 
     def _set_basic_info(self, basic_info):
@@ -60,20 +61,14 @@ class MailUtil(threading.Thread):
             logger.error("basic_info should be a dict")
             raise BadEmailSettings("basic_info not a dict")
 
-    def _send_mail(self, subject, obj, attachment):
+    def _send_mail(self, subject, content, attachment):
         subject = subject.decode("utf-8")
-        if len(obj) <= 50 and os.path.isfile(obj):
-            fd = open(obj)
-            content = fd.read()
-            content = "<br/>".join(content.split("\n"))
-            self._do_send_mail(self.BASICS["TOLIST"], subject, content, attachment)
-            fd.close()
-        else:
-            self._do_send_mail(self.BASICS["TOLIST"], subject, obj, attachment)
-            MyLogger.info("to send mail file not exist,now just send this string")
+        self._do_send_mail(self.BASICS["TOLIST"], subject, content, attachment)
 
     def run(self):
-        self._send_mail(self.subject, self.obj, self.attachment)
+        if not self.subject or not self.content:
+            return
+        self._send_mail(self.subject, self.content, self.attachment)
 
     def _do_send_mail(self, to, subject, content, attachment):
 
@@ -97,6 +92,21 @@ class MailUtil(threading.Thread):
             server.sendmail(self.BASICS["USERNAME"], to, msg.as_string())
         finally:
             server.quit()
+
+
+class FileMail(MailBase):
+    """
+        load文件发邮件
+    """
+    def __init__(self, subject, mail_file, basic_info, attachment=""):
+        if len(mail_file) <= 50 and os.path.isfile(mail_file):
+            fd = open(mail_file)
+            content = fd.read()
+            content = "<br/>".join(content.split("\n"))
+            fd.close()
+        else:
+            content = ""
+        super(FileMail, self).__init__(subject, content, basic_info, attachment)
 
 
 class BadEmailSettings(Exception):

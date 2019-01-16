@@ -16,7 +16,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 class MyLogger(logging.Logger):
     '''
-        my logger
+        日志类统一入口,初始化日志
     '''
     FORMAT = "%(asctime)s ~ %(levelname)s ~ %(message)s"
     DATEFMT = "[%Y-%m-%d %H:%M:%S]"
